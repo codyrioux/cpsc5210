@@ -8,6 +8,10 @@
   (:use (cpsc5210 util))
   (:require [clojure.zip :as z]))
 
+(defn random-node [x] (loop [cnt (rand-int (count (flatten x))) node x]
+                        (cond (= cnt 0) (z/node node)
+                              :else (recur (- cnt 1) (z/next node))) ))
+
 (def test-circuit [:b [:c [:a 0 1] [:a 1 0]] [:c [:a 1 0] 0]])
 
 (defn selection

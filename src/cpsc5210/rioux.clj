@@ -8,16 +8,6 @@
   (:use (cpsc5210 util)
         (clojure set)))
 
-(def tc1 {{:a 0 :b 0} {:a 1 :b 1}
-          {:a 0 :b 1} {:a 1 :b 0}
-          {:a 1 :b 0} {:a 0 :b 1}
-          {:a 1 :b 1} {:a 0 :b 0}})
-
-(def tc2 {{:a 0 :b 0} {:a 0 :b 0}
-          {:a 0 :b 1} {:a 0 :b 1}
-          {:a 1 :b 0} {:a 1 :b 1}
-          {:a 1 :b 1} {:a 1 :b 0}})
-
 (defn- log2 [n]
   (/ (Math/log n) (Math/log 2)))
 
@@ -91,7 +81,9 @@
 (defn fitness
   "Fitness function for the Tofolli gate solution."
   [target candidate]
-  (/ (nmi target candidate) (circuit-quantum-cost candidate)))
+  (let [t-truth (tofolli-to-truth-table target)
+        c-truth (tofolli-to-truth-table candidate)]
+    (/ (nmi t-truth c-truth) (circuit-quantum-cost candidate))))
 
 (defn selection
   "Select which individuals advance based on a probability distribution defined by their fitness."

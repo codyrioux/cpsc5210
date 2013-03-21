@@ -1,9 +1,6 @@
 (ns cpsc5210.util
+  "A collection of utility functions for use in these experiments."
   (:require [clojure.zip :as z]))
-
-(defn random-node [x] (loop [cnt (rand-int (count (flatten x))) node x]
-                        (cond (= cnt 0) (z/node node)
-                              :else (recur (- cnt 1) (z/next node))) ))
 
 (defn binary-permutation
   "Takes a seq of input keywords and maps them to all possible binary permutations.
@@ -17,7 +14,7 @@
                      (map #(assoc %1 (first k) 0) accumulator)
                      (map #(assoc %1 (first k) 1) accumulator)))) ))
 
-(defn- flip-bit
+(defn flip-bit
   "Flips a bit."
   [bit]
   (Math/abs (- bit 1)))
@@ -26,7 +23,9 @@
   "Evaluates a single tofolli gate.
    Inputs:
    values : A map containing inputs and their binary value.
-   gate : A representation of a tofolli gate. ([:a :b] :c) a, b are controls and c the target."
+   gate : A representation of a tofolli gate. ([:a :b] :c) a, b are controls and c the target.
+   
+   Returns: A map in the same form as values representing the gate output."
   [values gate] 
   (if (every? #(= 1 (get values %1)) (first gate))
     (assoc values (second gate) (flip-bit (get values (second gate))) )
@@ -37,8 +36,8 @@
   [values circuit]
   (reduce evaluate-tofolli-gate values circuit))
 
-(defn build-truth-table
-  "Builds a truth table for the provided cricut."
+(defn tofolli-to-truth-table
+  "Builds a truth table for the provided tofolli cricut."
   [circuit]
   (let [inputs (set (filter keyword? (flatten circuit)))
         input-patterns (binary-permutation inputs)]
