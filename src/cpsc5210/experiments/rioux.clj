@@ -19,7 +19,9 @@
 (def truth-4mod5 (tofolli-to-truth-table circuit-4mod5))
 
 (defn terminate-4mod5?
+  "A termination condition that terminates the moment a member of the population
+   satisfies the circuit."
   [population]
-  )
+  (> 0 (count (filter #(= truth-4mod5 (tofolli-to-truth-table %1)) population))))
 
-;; NEED fitness, selection, crossover,
+;; NEED crossover,

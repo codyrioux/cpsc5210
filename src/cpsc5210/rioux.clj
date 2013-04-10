@@ -11,11 +11,11 @@
 (defn- log2 [n]
   (/ (Math/log n) (Math/log 2)))
 
-(defn get-lines
+(defn- get-lines
   [circuit]
   (set (flatten (map keys (keys circuit)))))
 
-(defn p 
+(defn- p 
   "Calculates the probability of a particular output vector of given a circuit.
    Currently cheats and assumes we have a reversible circuit, thus the output occurs exactly once.
    Returns: p(circuit=output)"
@@ -45,7 +45,7 @@
         r-frac (/ (count (filter #(= (get %1 rkey) rval) r-outputs)) (count r-outputs))]
     (* t-frac r-frac)))
 
-(defn h
+(defn- h
   "Calculates the entropy of a given boolean function specified by its truth table.
    The value is always between 0 and m where m is the number of inputs patterns."
   [circuit]
@@ -53,7 +53,7 @@
         outputs (map #(get circuit %1) ks)]
     (reduce +  (map #(* (p circuit %1) (log2 (/ 1 (p circuit %1)))) outputs))))
 
-(defn h2
+(defn- h2
   "Calculates the joint entropy between input circuits t and r."
   [t r]
   (* -1 
@@ -76,27 +76,25 @@
 
    Returns: The normalized mutual information (NMI) of t and r."
   [t r]
-  (/ (+ (h t) (h r)) (h2 t r)))
+  (/ (+ (h t) (h r)) (+ 1 (h2 t r))))
 
 (defn fitness
   "Fitness function for the Tofolli gate solution."
   [target candidate]
   (let [t-truth (tofolli-to-truth-table target)
         c-truth (tofolli-to-truth-table candidate)]
-    (/ (nmi t-truth c-truth) (circuit-quantum-cost candidate))))
+    (/ (nmi t-truth c-truth) (+ 1 (circuit-quantum-cost candidate)))))
 
 (defn selection
   "Select which individuals advance based on a probability distribution defined by their fitness."
   [individuals]
-  (let [max-fitness (max (map #(:fitness (meta %1)) individuals))]
-    (filter #(< (/ (:fitness (meta %1)) max-fitness ) (rand)) individuals)))
+  (let [max-fitness (reduce max (map #(:fitness (meta %1)) individuals))]
+    (filter #(< (/ (:fitness (meta %1)) max-fitness) (rand)) individuals)))
 
 (defn- breed
-  "Takes two individuals and produces a single child based on those individuals.
-   This occurs by randomly selecting an element from each position. This goes to
-   the length of x, so inputs should be shuffled."
-  [x y] 
-  (map #((let [p (shuffle [x y])]  nth (first p) %1 (nth (second p) %1))) (range (count x))))
+  "Takes two individuals and produces a single child based on those individuals."
+  [x y]
+  (take (count x) (shuffle (concat x y))))
 
 (defn crossover
   "Perform crossover on the current population in order to receive a new population."
@@ -108,10 +106,9 @@
   "Selects a random line from the set of lines passed in. Basically a rand-nth that won't throw an exception."
   [lines]
   (cond
-    (= 0 (count lines)) nil
-    :else (rand-nth lines)))
+    (= 0 (count lines)) [] 
+    :else [ (rand-nth (seq lines))])) 
 
-;; Getting an unsupported operation here
 (defn- mutate
   "Mutates a single Tofolli gate."
   [lines gate]
@@ -121,11 +118,11 @@
         unused-lines (difference lines control-lines #{target-line})
         action (rand-int 4)]
     (cond
-      (= action 0) [(concat control-lines (random-line unused-lines)) target-line] ; add a control line
+      (= action 0) [(concat control-lines  (random-line unused-lines)) target-line] ; add a control line
       (= action 1) [(rest (shuffle control-lines)) target-line] ; remove a control line
-      (= action 2) [control-lines (rand-nth (difference lines control-lines))] ; change the target
-      (= action 3) [(concat (rest (shuffle control-lines)) (random-line unused-lines )) target-line] ; remove and add a control line
-  )))
+      (= action 2) [(vec control-lines) (rand-nth (seq (difference lines control-lines)))] ; change the target
+      (= action 3) [(concat (rest (shuffle control-lines))  (random-line unused-lines )) target-line] ; remove and add a control line
+    )))
 
 (defn mutation
   "Mutates an individual at the specified mutation rate (mr).
@@ -133,5 +130,5 @@
   [lines mr individual]
   (if (< (- 1 mr) (rand))
     (let [mutation-idx (rand-int (count individual))]
-      (concat (take mutation-idx individual) (mutate lines individual) (drop (+ 1 mutation-idx) individual)))
+      (concat (take mutation-idx individual)  [ (mutate lines (nth individual mutation-idx))] (drop (+ 1 mutation-idx) individual)))
     individual))
