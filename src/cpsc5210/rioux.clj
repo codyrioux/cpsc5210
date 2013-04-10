@@ -1,7 +1,7 @@
 (ns cpsc5210.rioux
   "This namespace contains all of the code implementing the Rioux paper.
    It publically defines functions: fitness, mutation, selection, crossover
-   for use in the genetic algorithm defined in cpsc5210.core
+   for use in the genetic algorithm defined in cpsc5211.core
    
    In addition to this the namespace utilizes an array of private information
    theory functions to implement experiment-specific fitness functions."
@@ -111,6 +111,7 @@
     (= 0 (count lines)) nil
     :else (rand-nth lines)))
 
+;; Getting an unsupported operation here
 (defn- mutate
   "Mutates a single Tofolli gate."
   [lines gate]
@@ -130,7 +131,7 @@
   "Mutates an individual at the specified mutation rate (mr).
    Intended to be used as the mutation function passed to the genetic algorithm."
   [lines mr individual]
-  (if (< mr (rand))
+  (if (< (- 1 mr) (rand))
     (let [mutation-idx (rand-int (count individual))]
       (concat (take mutation-idx individual) (mutate lines individual) (drop (+ 1 mutation-idx) individual)))
     individual))

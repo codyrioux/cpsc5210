@@ -54,3 +54,13 @@
   "Computes the quantum cost of an entire circuit."
   [circuit]
   (reduce + (map quantum-cost-gate circuit)))
+
+(defn random-gate
+  [lines]
+  (let [target (rand-nth lines)
+        control-lines (take (rand-int (count lines)) (shuffle (disj (set lines) target)))]
+    [control-lines target]))
+
+(defn random-circuit
+  [lines max-gates]
+  (repeatedly (rand-int (+ 1 max-gates)) #(random-gate lines)))
