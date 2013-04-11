@@ -11,7 +11,7 @@
 (defn- log2 [n]
   (/ (Math/log n) (Math/log 2)))
 
-(defn- get-lines
+(defn get-lines
   [circuit]
   (set (flatten (map keys (keys circuit)))))
 
@@ -22,7 +22,7 @@
   [circuit output]
   (/ 1 (count (keys circuit))))
 
-(defn- p2
+(defn p2
   "Calculates p(r=rval | t=tval).
    Determines the fraction of outputs in t where t=tval.
    Then determines the outputs of r given the inputs that provide t=tval,
@@ -43,17 +43,17 @@
         t-inputs-given-output (filter #(= (get (get ttable %1) tkey) tval)  (keys ttable))
         r-outputs (map #(get rtable %1) t-inputs-given-output) 
         r-frac (/ (count (filter #(= (get %1 rkey) rval) r-outputs)) (count r-outputs))]
-    (* t-frac r-frac)))
+    (* t-frac 1)))
 
-(defn- h
+(defn h
   "Calculates the entropy of a given boolean function specified by its truth table.
    The value is always between 0 and m where m is the number of inputs patterns."
   [circuit]
   (let [ks (keys circuit)
         outputs (map #(get circuit %1) ks)]
-    (reduce +  (map #(* (p circuit %1) (log2 (/ 1 (p circuit %1)))) outputs))))
+    (* -1  (reduce +  (map #(* (p circuit %1) (log2 (p circuit %1))) outputs)))))
 
-(defn- h2
+(defn h2
   "Calculates the joint entropy between input circuits t and r."
   [t r]
   (* -1 
@@ -83,7 +83,28 @@
   [target candidate]
   (let [t-truth (tofolli-to-truth-table target)
         c-truth (tofolli-to-truth-table candidate)]
-    (/ (nmi t-truth c-truth) (+ 1 (circuit-quantum-cost candidate)))))
+    (/ (/ 1 (nmi t-truth c-truth)) (+ 1 (circuit-quantum-cost candidate)))))
+
+(defn fitness2
+  "Fitness function for the Tofolli gate solution."
+  [target candidate]
+  (let [t-truth (tofolli-to-truth-table target)
+        c-truth (tofolli-to-truth-table candidate)]
+    (/ (h2 t-truth c-truth) (+ 1 (circuit-quantum-cost candidate)))))
+
+(defn fitness3
+  "Fitness function for the Tofolli gate solution."
+  [target candidate]
+  (let [t-truth (tofolli-to-truth-table target)
+        c-truth (tofolli-to-truth-table candidate)]
+    (h2 t-truth c-truth)))
+
+(defn fitness4
+  "Fitness function for the Tofolli gate solution."
+  [beta target candidate]
+  (let [t-truth (tofolli-to-truth-table target)
+        c-truth (tofolli-to-truth-table candidate)]
+    (/ (* beta  (h2 t-truth c-truth)) (* (- 1 beta) (+ 1 (circuit-quantum-cost candidate))))))
 
 (defn selection
   "Select which individuals advance based on a probability distribution defined by their fitness."
@@ -100,7 +121,16 @@
   "Perform crossover on the current population in order to receive a new population."
   [population]
   (concat (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
-           (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))))
+          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
+          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))))
+
+(defn crossover2
+  "Perform crossover on the current population in order to receive a new population."
+  [population]
+  (let [shuf-pop (partition 2 (shuffle population))
+        larger-pop (concat shuf-pop shuf-pop shuf-pop)
+        ]
+    (map #(breed (first %1) (second %1)) larger-pop)))
 
 (defn- random-line
   "Selects a random line from the set of lines passed in. Basically a rand-nth that won't throw an exception."

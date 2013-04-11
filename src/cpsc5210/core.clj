@@ -23,12 +23,13 @@
   [fitness selection crossover mutation terminate? initial-population tmax mr]
   (loop [t 0, pt initial-population]
     (let [pt (map #(with-meta %1 {:fitness (fitness %1)}) pt)]
+      (println (str "Generation: " t))
     (cond
-      (or (> t tmax) (terminate? pt)) pt
+      (or (> t tmax) (terminate? pt)) [t pt] 
       :else (recur 
               (+ t 1)
               (->>
                 pt
-               (map selection)
+               (selection)
                (crossover)
-               (map mutation mr)))))))
+               (pmap #( mutation mr %1))))))))
