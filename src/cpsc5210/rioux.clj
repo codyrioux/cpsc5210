@@ -43,7 +43,7 @@
         t-inputs-given-output (filter #(= (get (get ttable %1) tkey) tval)  (keys ttable))
         r-outputs (map #(get rtable %1) t-inputs-given-output) 
         r-frac (/ (count (filter #(= (get %1 rkey) rval) r-outputs)) (count r-outputs))]
-    (* t-frac 1)))
+    t-frac))
 
 (defn h
   "Calculates the entropy of a given boolean function specified by its truth table.
@@ -93,11 +93,15 @@
     (/ (h2 t-truth c-truth) (+ 1 (circuit-quantum-cost candidate)))))
 
 (defn fitness3
-  "Fitness function for the Tofolli gate solution."
+  "Fitness function for the Tofolli gate solution.
+   This one uses just mutual information between target and candidate.
+   Very aggressive."
   [target candidate]
   (let [t-truth (tofolli-to-truth-table target)
         c-truth (tofolli-to-truth-table candidate)]
     (h2 t-truth c-truth)))
+
+(def fitness3 (memoize fitness3))
 
 (defn fitness4
   "Fitness function for the Tofolli gate solution."
@@ -110,27 +114,41 @@
   "Select which individuals advance based on a probability distribution defined by their fitness."
   [individuals]
   (let [max-fitness (reduce max (map #(:fitness (meta %1)) individuals))]
-    (filter #(< (/ (:fitness (meta %1)) max-fitness) (rand)) individuals)))
+    (filter #(< (rand) (/ (:fitness (meta %1)) max-fitness)) individuals)))
 
 (defn- breed
   "Takes two individuals and produces a single child based on those individuals."
   [x y]
   (take (count x) (shuffle (concat x y))))
 
+(defn breed2
+  ""
+  [x y]
+  (let [shorter-length (min (count x) (count y))]
+    (concat  (map #(nth (if (= (rand-int 2) 0) x y) %1) (range shorter-length)) (drop shorter-length x) (drop shorter-length y))))
+
 (defn crossover
   "Perform crossover on the current population in order to receive a new population."
   [population]
   (concat (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
           (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
+          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
+          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
+          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
+          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
+          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
+          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
           (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))))
 
 (defn crossover2
-  "Perform crossover on the current population in order to receive a new population."
+  "A crossover function that breeds each population once."
   [population]
-  (let [shuf-pop (partition 2 (shuffle population))
-        larger-pop (concat shuf-pop shuf-pop shuf-pop)
-        ]
-    (map #(breed (first %1) (second %1)) larger-pop)))
+  (map #(breed2 %1 (rand-nth population)) population))
+
+(defn crossover3
+  ""
+  [maxpop population]
+  (concat population (repeatedly (- maxpop (count population)) #(breed2 (first (shuffle population)) (second (shuffle population))))))
 
 (defn- random-line
   "Selects a random line from the set of lines passed in. Basically a rand-nth that won't throw an exception."
@@ -158,7 +176,7 @@
   "Mutates an individual at the specified mutation rate (mr).
    Intended to be used as the mutation function passed to the genetic algorithm."
   [lines mr individual]
-  (if (< (- 1 mr) (rand))
+  (if (and (> (count individual) 0) (< (- 1 mr) (rand))) 
     (let [mutation-idx (rand-int (count individual))]
       (concat (take mutation-idx individual)  [ (mutate lines (nth individual mutation-idx))] (drop (+ 1 mutation-idx) individual)))
     individual))

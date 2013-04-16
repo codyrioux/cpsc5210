@@ -63,4 +63,4 @@
 
 (defn random-circuit
   [lines max-gates]
-  (repeatedly (rand-int (+ 1 max-gates)) #(random-gate lines)))
+  (repeatedly (+ 1 (rand-int max-gates)) #(random-gate lines)))

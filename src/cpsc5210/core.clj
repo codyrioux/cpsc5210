@@ -1,6 +1,7 @@
 (ns cpsc5210.core
   (:use (cpsc5210 util)
-        (clojure set)))
+        (clojure set))
+  (:gen-class))
 
 (defn ga
   "Main function for running the genetic algorithm.
@@ -21,9 +22,9 @@
    
    Returns: The population at the time of termination, with fitness metadata. "
   [fitness selection crossover mutation terminate? initial-population tmax mr]
-  (loop [t 0, pt initial-population]
+  (loop [t 1, pt initial-population]
     (let [pt (map #(with-meta %1 {:fitness (fitness %1)}) pt)]
-      (println (str "Generation: " t))
+    (println (str "Generation " t " [" (count pt) "]"))
     (cond
       (or (> t tmax) (terminate? pt)) [t pt] 
       :else (recur 
@@ -32,4 +33,4 @@
                 pt
                (selection)
                (crossover)
-               (pmap #( mutation mr %1))))))))
+               (map #( mutation mr %1))))))))
