@@ -1,6 +1,7 @@
 # cpsc5210
 
-A Clojure library designed to implement logic synthesis functions. The 
+A Clojure library designed to implement logic synthesis functions specifically
+in the area of genetic algorithms / evolutionary approaches. The 
 cpsc5210.aguirre namespace contains a partial implementation of the Aguirre
 2003 paper on the subject. The cpsc5210.rioux namespace contains a full
 implementation of the functions for a proposed paper.
@@ -17,6 +18,7 @@ clojure repl.
 java -cp target/cpsc5210-0.1.0-SNAPSHOT-standalone.jar prime3 4 1
 ```
 
+### Clojure REPL
 ```clojure
 (use 'cpsc5210.experiments.rioux :reload-all)
 ; Run 4 experiments in parallel, should probably capture the results.
