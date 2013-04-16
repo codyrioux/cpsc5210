@@ -27,6 +27,6 @@ java -cp target/cpsc5210-0.1.0-SNAPSHOT-standalone.jar prime3 4 1
 
 ## License
 
-Copyright © 2013 FIXME
+Copyright © 2013 Cody Rioux
 
 Distributed under the Eclipse Public License, the same as Clojure.
