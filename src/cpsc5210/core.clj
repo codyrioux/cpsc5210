@@ -1,6 +1,5 @@
 (ns cpsc5210.core
-  (:use (cpsc5210 util)
-        (clojure set))
+  (:use (clojure set))
   (:gen-class))
 
 (defn ga
