@@ -8,12 +8,24 @@
   (:use (cpsc5210 util)
         (clojure set)))
 
+;; Helper Functions
+
 (defn- log2 [n]
+  "Returns the base 2 logarithm of n."
   (/ (Math/log n) (Math/log 2)))
 
 (defn get-lines
   [circuit]
   (set (flatten (map keys (keys circuit)))))
+
+(defn- random-line
+  "Selects a random line from the set of lines passed in. Basically a rand-nth that won't throw an exception."
+  [lines]
+  (cond
+    (= 0 (count lines)) [] 
+    :else [ (rand-nth (seq lines))])) 
+
+;; Entropy Functions
 
 (defn- p 
   "Calculates the probability of a particular output vector of given a circuit.
@@ -78,37 +90,31 @@
   [t r]
   (/ (+ (h t) (h r)) (+ 1 (h2 t r))))
 
+;; Genetic Algorithm Functions
+
 (defn fitness
-  "Fitness function for the Tofolli gate solution."
+  "Fitness function for the Tofolli gate solution based on normalized mutual information (NMI)
+   and quantum cost."
   [target candidate]
   (let [t-truth (tofolli-to-truth-table target)
         c-truth (tofolli-to-truth-table candidate)]
     (/ (/ 1 (nmi t-truth c-truth)) (+ 1 (circuit-quantum-cost candidate)))))
 
 (defn fitness2
-  "Fitness function for the Tofolli gate solution."
+  "Fitness function for the Tofolli gate solution based on joint entropy and quantum cost."
   [target candidate]
   (let [t-truth (tofolli-to-truth-table target)
         c-truth (tofolli-to-truth-table candidate)]
     (/ (h2 t-truth c-truth) (+ 1 (circuit-quantum-cost candidate)))))
 
 (defn fitness3
-  "Fitness function for the Tofolli gate solution.
-   This one uses just mutual information between target and candidate.
-   Very aggressive."
+  "Fitness function for the Tofolli gate solution based on joint entropy."
   [target candidate]
   (let [t-truth (tofolli-to-truth-table target)
         c-truth (tofolli-to-truth-table candidate)]
     (h2 t-truth c-truth)))
 
 (def fitness3 (memoize fitness3))
-
-(defn fitness4
-  "Fitness function for the Tofolli gate solution."
-  [beta target candidate]
-  (let [t-truth (tofolli-to-truth-table target)
-        c-truth (tofolli-to-truth-table candidate)]
-    (/ (* beta  (h2 t-truth c-truth)) (* (- 1 beta) (+ 1 (circuit-quantum-cost candidate))))))
 
 (defn selection
   "Select which individuals advance based on a probability distribution defined by their fitness."
@@ -117,45 +123,15 @@
     (filter #(< (rand) (/ (:fitness (meta %1)) max-fitness)) individuals)))
 
 (defn- breed
-  "Takes two individuals and produces a single child based on those individuals."
-  [x y]
-  (take (count x) (shuffle (concat x y))))
-
-(defn breed2
-  ""
+  "Takes two circuits and performs crossover to produce a new solution the same length as max(length(x), length(y))."
   [x y]
   (let [shorter-length (min (count x) (count y))]
     (concat  (map #(nth (if (= (rand-int 2) 0) x y) %1) (range shorter-length)) (drop shorter-length x) (drop shorter-length y))))
 
 (defn crossover
-  "Perform crossover on the current population in order to receive a new population."
-  [population]
-  (concat (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
-          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
-          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
-          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
-          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
-          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
-          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
-          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))
-          (map #(breed (first %1) (second %1)) (partition 2 (shuffle population)))))
-
-(defn crossover2
   "A crossover function that breeds each population once."
   [population]
-  (map #(breed2 %1 (rand-nth population)) population))
-
-(defn crossover3
-  ""
-  [maxpop population]
-  (concat population (repeatedly (- maxpop (count population)) #(breed2 (first (shuffle population)) (second (shuffle population))))))
-
-(defn- random-line
-  "Selects a random line from the set of lines passed in. Basically a rand-nth that won't throw an exception."
-  [lines]
-  (cond
-    (= 0 (count lines)) [] 
-    :else [ (rand-nth (seq lines))])) 
+  (map #(breed %1 (rand-nth population)) population))
 
 (defn- mutate
   "Mutates a single Tofolli gate."

@@ -32,7 +32,7 @@
   ""
   [x]
   (let [ip0 (initial-population 500 [:a :b :c :d :e] 10)]
-    (ga (partial fitness3 circuit-4mod5) selection crossover2 (partial mutation [:a :b :c :d :e]) (partial terminate? truth-4mod5) ip0 300 0.05)))
+    (ga (partial fitness3 circuit-4mod5) selection crossover (partial mutation [:a :b :c :d :e]) (partial terminate? truth-4mod5) ip0 300 0.05)))
 
 ;; xor5
 
@@ -48,7 +48,7 @@
   ""
   [x]
   (let [ip0 (initial-population 500 [:a :b :c :d :e] 10)]
-    (ga (partial fitness3 circuit-xor5) selection crossover2 (partial mutation [:a :b :c :d :e]) (partial terminate? truth-xor5) ip0 300 0.05)))
+    (ga (partial fitness3 circuit-xor5) selection crossover (partial mutation [:a :b :c :d :e]) (partial terminate? truth-xor5) ip0 300 0.05)))
 
 ;; prime3
 
@@ -64,7 +64,7 @@
   ""
   [x]
   (let [ip0 (initial-population 100 [:a :b :c] 5)]
-    (ga (partial fitness3 circuit-prime3) selection crossover2 (partial mutation [:a :b :c]) (partial terminate? truth-prime3) ip0 150 0.05)))
+    (ga (partial fitness3 circuit-prime3) selection crossover (partial mutation [:a :b :c]) (partial terminate? truth-prime3) ip0 150 0.05)))
 
 
 
@@ -80,7 +80,7 @@
   ""
   [x]
   (let [ip0 (concat [ ] (initial-population 10 [:a :b :c] 2))]
-    (ga (partial fitness3 circuit-easy) selection crossover2 (partial mutation [:a :b :c]) (partial terminate? truth-easy) ip0 10 0)))
+    (ga (partial fitness3 circuit-easy) selection crossover (partial mutation [:a :b :c]) (partial terminate? truth-easy) ip0 10 0)))
 
 ;; WORST CODE DUPLICATION EVER, WELL NOT EVER
 (defn -main
