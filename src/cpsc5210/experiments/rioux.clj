@@ -1,5 +1,6 @@
 (ns cpsc5210.experiments.rioux
-  ""
+  "This namespace implements functions specific to running experiments.
+   This includes a main function to make it easy to run the experiments on Condor HT."
  (:use (cpsc5210 rioux)
        (cpsc5210 util)
        (cpsc5210 core))
@@ -66,22 +67,6 @@
   (let [ip0 (initial-population 100 [:a :b :c] 5)]
     (ga (partial fitness3 circuit-prime3) selection crossover (partial mutation [:a :b :c]) (partial terminate? truth-prime3) ip0 150 0.05)))
 
-
-
-;; easy
-
-
-(def circuit-easy
-  [ [[:a :b] :c]])
-
-(def truth-easy (tofolli-to-truth-table circuit-easy))
-
-(defn experiment-easy
-  ""
-  [x]
-  (let [ip0 (concat [ ] (initial-population 10 [:a :b :c] 2))]
-    (ga (partial fitness3 circuit-easy) selection crossover (partial mutation [:a :b :c]) (partial terminate? truth-easy) ip0 10 0)))
-
 ;; WORST CODE DUPLICATION EVER, WELL NOT EVER
 (defn -main
   [experiment cnt id]
@@ -91,18 +76,14 @@
     (= experiment "xor5")
     (spit (str "xor5-results-" id) (vec (parallel-experiment experiment-xor5 (read-string cnt)))) 
     (= experiment "prime3")
-    (spit (str "prime3-results-" id) (vec (parallel-experiment experiment-prime3 (read-string cnt))))
-    (= experiment "easy")
-    (spit (str "easy-results-" id) (vec (parallel-experiment experiment-easy (read-string cnt))))))
+    (spit (str "prime3-results-" id) (vec (parallel-experiment experiment-prime3 (read-string cnt))))))
 
 ;; Reults Aggregation
 
 (defn read-results
   [experiment ids]
   (apply concat (for [id ids]
-                  (read-string (slurp (str "target/run1/" experiment "-results-" id)))
-                  ))
-  )
+                  (read-string (slurp (str "target/run1/" experiment "-results-" id))))))
 
 (defn get-solutions
   [target results]
