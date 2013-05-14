@@ -10,13 +10,13 @@
 
 ;; Helper Functions
 
-(defn- log2 [n]
+(defn- log2 ^double [^double n]
   "Returns the base 2 logarithm of n."
   (/ (Math/log n) (Math/log 2)))
 
 (defn get-lines
   [circuit]
-  (set (flatten (map keys (keys circuit)))))
+  (set (flatten circuit)))
 
 (defn- random-line
   "Selects a random line from the set of lines passed in. Basically a rand-nth that won't throw an exception."
@@ -49,13 +49,13 @@
    rval : The value for rkey in which we are interested.
    
    Returns: p(r=rval | t=tval) as a fraction."
-  [ttable rtable tkey tval rkey rval]
-  (let [t-outputs (map #(get ttable %1) (keys ttable))
+  ^double [ttable rtable tkey ^long tval rkey ^long rval]
+  (let [t-outputs (vals ttable)
         t-frac (/ (count (filter #(= tval (get %1 tkey)) t-outputs)) (count t-outputs))
         t-inputs-given-output (filter #(= (get (get ttable %1) tkey) tval)  (keys ttable))
         r-outputs (map #(get rtable %1) t-inputs-given-output) 
         r-frac (/ (count (filter #(= (get %1 rkey) rval) r-outputs)) (count r-outputs))]
-    t-frac))
+    r-frac))
 
 (defn h
   "Calculates the entropy of a given boolean function specified by its truth table.
@@ -67,7 +67,7 @@
 
 (defn h2
   "Calculates the joint entropy between input circuits t and r."
-  [t r]
+  ^double [t r]
   (* -1 
      (reduce + 
       (map #(if (Double/isNaN %1) 0 %1)
