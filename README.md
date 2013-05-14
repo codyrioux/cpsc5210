@@ -25,6 +25,9 @@ java -cp target/cpsc5210-0.1.0-SNAPSHOT-standalone.jar prime3 4 1
 (parallel-experiment experiment-prime3 4)
 ```
 
+## Todo
+* Implement experiments as agents using send to ensure performance
+
 ## License
 
 Copyright © 2013 Cody Rioux
